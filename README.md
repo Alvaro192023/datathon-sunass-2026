@@ -6,10 +6,6 @@ Solución de ciencia de datos para optimizar la operación de una EPS de saneami
 
 Una EPS gestiona miles de fugas y roturas al mes con cuadrillas limitadas. Sin priorización basada en datos ni ruteo eficiente, aumentan el agua no facturada, los tiempos de reparación y los costos operativos.
 
-## Objetivo
-
-Construir un pipeline reproducible que limpie los datos operativos, identifique los sectores críticos y asigne y rutee de forma óptima las reparaciones para minimizar desplazamiento y costos.
-
 ## Arquitectura
 
 ```mermaid
@@ -18,8 +14,30 @@ flowchart LR
     B --> C[Indicadores por sector<br/>roturas/km, fugas/mil conex.]
     C --> D[Clustering K-Means<br/>sectores criticos]
     D --> E[Asignacion a 3 cuadrillas<br/>distancia euclidiana min.]
-    E --> F[Ruteo diario TSP]
-    F --> G[Plan operativo + mapas Folium]
+    E --> F[Ruteo diario TSP<br/>vecino cercano + 2-opt]
+    F --> G[Plan operativo + mapas]
+```
+
+## Estructura del proyecto
+
+```
+datathon-sunass-2026/
+├── src/
+│   ├── limpieza.py                             # Normalizacion, geo-coords, timestamps
+│   └── ruteo.py                                # Asignacion de cuadrillas + TSP (NN + 2-opt)
+├── tests/
+│   ├── test_limpieza.py
+│   └── test_ruteo.py
+├── solucion_lima_ SCC07.ipynb                  # Pipeline completo (notebook)
+├── presentacion_solucion_lima_ SCC07.pptx      # Presentacion de la solucion
+├── Datathon_SUNASS_2026_Reto_Operacional.pdf   # Enunciado del reto
+├── Dockerfile
+├── requirements.txt
+├── pyproject.toml
+├── Makefile
+├── .github/workflows/ci.yml
+├── LICENSE
+└── README.md
 ```
 
 ## Stack
@@ -28,32 +46,24 @@ flowchart LR
 |---|---|
 | Lenguaje | Python |
 | Datos | pandas, NumPy |
-| ML / optimización | scikit-learn (K-Means), SciPy (TSP) |
-| Geo / visualización | Folium, Matplotlib |
-| Entorno | Jupyter Notebook |
-
-## Estructura del proyecto
-
-```
-datathon-sunass-2026/
-├── solucion_lima_SCC07.ipynb                   # Pipeline completo
-├── presentacion_solucion_lima_SCC07.pptx       # Presentación de la solución
-├── Datathon_SUNASS_2026_Reto_Operacional.pdf   # Enunciado del reto
-└── README.md
-```
+| ML / optimización | scikit-learn (K-Means), heurística TSP propia (NN + 2-opt) |
+| Geo / visualización | Folium, Matplotlib, Seaborn |
+| Calidad | pytest, ruff, GitHub Actions (CI) |
+| Entorno | Jupyter Notebook, Docker |
 
 ## Ejecución
 
 1. Clona el repositorio: `git clone https://github.com/Alvaro192023/datathon-sunass-2026.git`
-2. Instala dependencias: `pip install pandas numpy scikit-learn scipy matplotlib folium`
-3. Abre `solucion_lima_SCC07.ipynb` en Jupyter y ejecuta las celdas en orden.
+2. Instala dependencias: `pip install -r requirements.txt`
+3. Ejecuta los tests: `pytest -q`
+4. Abre `solucion_lima_ SCC07.ipynb` en Jupyter (los módulos reutilizables están en `src/`).
 
 ## Resultados e impacto
 
 - **Finalista Nacional** de la Datathon SUNASS 2026.
 - Limpieza robusta: deduplicación, estandarización de sectores, corrección de outliers (IQR) y de coordenadas geográficas invertidas.
 - Indicadores operativos por sector (roturas/km, fugas/mil conexiones, tiempos de reparación) y **clustering K-Means** para priorizar sectores críticos.
-- **Asignación óptima** de fugas a 3 cuadrillas por distancia euclidiana mínima y **ruteo diario con TSP** para minimizar desplazamiento y costo.
+- **Asignación óptima** de fugas a 3 cuadrillas por distancia euclidiana mínima y **ruteo diario con TSP** (vecino más cercano + 2-opt) para minimizar desplazamiento y costo.
 
 ## Próximos pasos
 
